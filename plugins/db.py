@@ -1,12 +1,9 @@
-# Don't Remove Credit Tg - @VJ_Botz 
+# Don't Remove Credit Tg - @VJ_Botz
 # Subscribe YouTube Channel For Amazing Bot https://youtube.com/@Tech_VJ
 # Ask Doubt on telegram @KingVJ01
 
-import asyncio
 import motor.motor_asyncio
-from config import Config  # ✅ Required for MONGO_URL
-
-# ------------------------- Reusable MongoDB Wrapper -------------------------
+from config import Config
 
 class MongoDB:
     def __init__(self, uri, db_name, collection):
@@ -36,12 +33,20 @@ class MongoDB:
         
     async def get_all_files(self):
         return self.files.find({})
-
+        
     async def drop_all(self):
         return await self.files.drop()
 
-# ------------------------- User-based Connection (used in plugins) -------------------------
 
+# ✅ New utility to get all forward records
+async def get_all_forward_data(uri):
+    client = motor.motor_asyncio.AsyncIOMotorClient(uri)
+    db = client[Config.DATABASE_NAME]
+    forward_collection = db["FORWARD"]
+    return await forward_collection.find({}).to_list(length=1000)
+
+
+# ✅ Reuse connection logic
 async def connect_user_db(user_id, uri, chat):
     chat = f"{user_id}{chat}"
     dbname = f"{user_id}-Forward-Bot"
@@ -52,34 +57,3 @@ async def connect_user_db(user_id, uri, chat):
         print(e)
         return False, db
     return True, db
-
-# ------------------------- ✅ Global Forwarding Logic for Real-time Setup -------------------------
-
-# Used in main.py to fetch all saved source-destination forwarding pairs
-client = motor.motor_asyncio.AsyncIOMotorClient(Config.MONGO_URL)
-db = client["VJForwardBot"]  # Change only if your DB name is different
-forward_collection = db["forward_data"]  # Change only if collection name is different
-
-async def get_all_forward_data():
-    """
-    Returns:
-        List[Dict] — A list of dicts like:
-        [
-          {"source_chat_id": -100123456, "destination_chat_id": -100987654},
-          ...
-        ]
-    """
-    data = []
-    async for doc in forward_collection.find({}):
-        source = doc.get("source_chat_id")
-        dest = doc.get("destination_chat_id")
-        if source and dest:
-            data.append({
-                "source_chat_id": source,
-                "destination_chat_id": dest
-            })
-    return data
-
-# Don't Remove Credit Tg - @VJ_Botz
-# Subscribe YouTube Channel For Amazing Bot https://youtube.com/@Tech_VJ
-# Ask Doubt on telegram @KingVJ01
