@@ -8,7 +8,7 @@ from logging.handlers import RotatingFileHandler
 from config import Config
 from pyrogram import Client as VJ, filters, idle
 from pyrogram import Client as UserClient
-from plugins.db import get_all_forward_data  # 👈 your DB function
+from plugins.db import get_all_forward_data  # ✅ MongoDB-based mapping fetch
 
 # --- Logging Setup ---
 logging.basicConfig(
@@ -21,7 +21,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# --- Bot Client ---
+# --- Bot Client (for commands and control) ---
 VJBot = VJ(
     "VJ-Forward-Bot",
     bot_token=Config.BOT_TOKEN,
@@ -31,7 +31,7 @@ VJBot = VJ(
     plugins=dict(root="plugins")
 )
 
-# --- UserBot Client ---
+# --- User Client (for reading private channels) ---
 User = UserClient(
     name="forward-user",
     api_id=Config.API_ID,
@@ -39,12 +39,12 @@ User = UserClient(
     session_string=Config.STRING_SESSION
 )
 
-# --- Real-time forwarding handler builder ---
+# --- Dynamic Real-time Forwarding Setup ---
 async def setup_forward_handlers():
-    all_data = get_all_forward_data()  # 👈 should return a list of dicts with source & dest
+    all_data = await get_all_forward_data()  # ✅ MongoDB call
 
     if not all_data:
-        logger.warning("No source-destination mappings found in database.")
+        logger.warning("No forwarding pairs found in DB.")
         return
 
     for item in all_data:
@@ -62,14 +62,14 @@ async def setup_forward_handlers():
                 await message.forward(dest)
                 logger.info(f"Forwarded message from {source_id} to {dest}")
             except Exception as e:
-                logger.error(f"Error forwarding from {source_id} to {dest_id}: {e}")
+                logger.error(f"Forward failed: {e}")
 
 # --- Main Runner ---
 async def main():
     await VJBot.start()
     await User.start()
     await setup_forward_handlers()
-    logger.info("VJ Forward Bot is up and running with real-time forwarding!")
+    logger.info("✅ VJ Forward Bot is running with real-time forwarding enabled.")
     await idle()
     await VJBot.stop()
     await User.stop()
