@@ -1,11 +1,10 @@
 pyrofork
-tgcrypto
 pyropatch
-humanize 
+tgcrypto
+humanize
 motor==2.5.1
-TgCrypto
-Dnspython
-pymongo[srv]==3.12.3 
+dnspython
+pymongo[srv]==3.12.3
 umongo==3.0.1
 psutil
 pytz
