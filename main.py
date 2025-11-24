@@ -50,5 +50,10 @@ if __name__ == "__main__":
     health_thread = Thread(target=run_health_server, daemon=True)
     health_thread.start()
     
-    userbot.run()
+try:
+        userbot.run()
+    except Exception as e:
+    print(f"Bot error: {e}")
+    # Flask server will continue running even if bot fails
+
 
