@@ -9,6 +9,8 @@ from pyrogram.errors import FloodWait
 from config import Config
 from plugins.db import get_all_forward_data
 from plugins import temp
+from flask import Flask
+from threading import Thread
 
 api_id = Config.API_ID
 api_hash = Config.API_HASH
@@ -31,6 +33,22 @@ async def forward_handler(client, message: Message):
     except Exception as e:
         print(f"Error in forwarding: {e}")
 
+# Health check server for Koyeb
+app = Flask(__name__)
+
+@app.route('/')
+def health_check():
+    return 'OK', 200
+
+def run_health_server():
+    app.run(host='0.0.0.0', port=8080, debug=False)
+
+
 if __name__ == "__main__":
     print("Bot is running...")
+        # Start health check server in background thread
+    health_thread = Thread(target=run_health_server, daemon=True)
+    health_thread.start()
+    
     userbot.run()
+
